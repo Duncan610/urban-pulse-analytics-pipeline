@@ -1,0 +1,25 @@
+# --- Airflow providers ---
+apache-airflow-providers-snowflake
+apache-airflow-providers-http
+
+# --- Snowflake ---
+snowflake-connector-python
+snowflake-sqlalchemy
+
+# --- Data processing ---
+pandas
+pyarrow
+requests
+
+# --- dbt ---
+dbt-core
+dbt-snowflake
+
+# --- Streamlit dashboard ---
+streamlit
+plotly
+snowflake-connector-python[pandas]
+
+# --- Utilities ---
+python-dotenv
+tenacity
