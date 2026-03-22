@@ -1,0 +1,81 @@
+# UrbanPulse — dbt Project Configuration
+
+name: 'urbanpulse'
+version: '1.0.0'
+config-version: 2
+
+profile: 'urbanpulse'          # Matches the profile name in profiles.yml
+
+model-paths:    ["models"]
+analysis-paths: ["analyses"]
+test-paths:     ["tests"]
+seed-paths:     ["seeds"]
+macro-paths:    ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path:    "target"
+clean-targets:  ["target", "dbt_packages"]
+
+# MODEL CONFIGURATIONS
+# Each layer has a default materialization strategy.
+# Overrides can be set at the model level with {{ config(...) }}
+models:
+  urbanpulse:
+
+    # STAGING (Bronze layer)
+    # Views: no storage cost, always fresh, just a typed lens over raw tables
+    # Schema: STAGING in Snowflake
+
+    staging:
+      +materialized: view
+      +schema: staging
+      +tags: ['staging', 'bronze']
+
+    # INTERMEDIATE (Silver layer)
+    # Tables: these are enriched and joined — worth materializing for performance
+    # Schema: INTERMEDIATE in Snowflake
+
+    intermediate:
+      +materialized: table
+      +schema: intermediate
+      +tags: ['intermediate', 'silver']
+
+    # MARTS (Gold layer)
+    # Incremental where possible — only process new records on each run
+    # Schema: MARTS in Snowflake
+
+    marts:
+      +materialized: incremental
+      +schema: marts
+      +tags: ['marts', 'gold']
+      # Dimension tables override to table — they're small and fully refreshed
+      dim_neighborhoods:
+        +materialized: table
+      dim_date:
+        +materialized: table
+
+# SEEDS
+# Small static reference files — always materialized as tables
+seeds:
+  urbanpulse:
+    +schema: staging
+    +quote_columns: false
+
+# SNAPSHOTS (SCD Type 2)
+# Snapshots track historical changes in slowly-changing dimensions
+snapshots:
+  urbanpulse:
+    +target_schema: intermediate
+    +strategy: timestamp
+    +updated_at: updated_at
+
+# VARIABLES
+# Accessible in models with {{ var('variable_name') }}
+vars:
+  # Lookback window for incremental models (days)
+  # Catches late-arriving records — a key production concept
+  incremental_lookback_days: 3
+
+  # City scope for this deployment
+  target_city: 'New York'
+  target_state: 'NY'
