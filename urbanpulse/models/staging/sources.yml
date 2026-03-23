@@ -1,0 +1,75 @@
+version: 2
+
+sources:
+  - name: raw
+    database: URBANPULSE
+    schema: RAW
+    description: "Raw data landed by Python ingestion scripts. Never modified directly."
+
+    # Freshness checks — dbt will warn you if data hasn't arrived recently
+    freshness:
+      warn_after: {count: 1, period: day}
+      error_after: {count: 3, period: day}
+
+    tables:
+
+      - name: nyc_311_raw
+        description: "Raw NYC 311 service requests from NYC Open Data Socrata API"
+        loaded_at_field: _ingested_at
+        columns:
+          - name: unique_key
+            description: "Unique identifier for each 311 service request"
+          - name: created_date
+            description: "Date and time the request was created (raw string)"
+          - name: closed_date
+            description: "Date and time the request was closed (raw string, nullable)"
+          - name: complaint_type
+            description: "Category of the complaint e.g. Noise, HEAT/HOT WATER"
+          - name: descriptor
+            description: "More specific description of the complaint"
+          - name: borough
+            description: "NYC borough where the complaint was filed"
+          - name: latitude
+            description: "Latitude of the incident (raw string)"
+          - name: longitude
+            description: "Longitude of the incident (raw string)"
+          - name: status
+            description: "Current status of the request e.g. Open, Closed"
+          - name: _ingested_at
+            description: "Timestamp when this record was loaded by our pipeline"
+
+      - name: weather_raw
+        description: "Raw weather observations per NYC borough from OpenWeather API"
+        loaded_at_field: _ingested_at
+        columns:
+          - name: borough
+            description: "NYC borough name"
+          - name: temp_celsius
+            description: "Temperature in Celsius (raw float)"
+          - name: weather_main
+            description: "Main weather condition e.g. Clear, Rain, Clouds"
+          - name: humidity_pct
+            description: "Humidity percentage"
+          - name: rain_1h_mm
+            description: "Rainfall in last hour in millimetres (null if no rain)"
+          - name: observation_timestamp
+            description: "When OpenWeather recorded this observation"
+          - name: _ingested_at
+            description: "Timestamp when this record was loaded by our pipeline"
+
+      - name: census_raw
+        description: "US Census ACS 5-year estimates for NYC boroughs"
+        loaded_at_field: _ingested_at
+        columns:
+          - name: borough
+            description: "NYC borough name"
+          - name: survey_year
+            description: "Year of the ACS survey"
+          - name: total_population
+            description: "Total population estimate"
+          - name: median_household_income
+            description: "Median household income in USD"
+          - name: poverty_rate_pct
+            description: "Percentage of population below poverty line"
+          - name: _ingested_at
+            description: "Timestamp when this record was loaded by our pipeline"
