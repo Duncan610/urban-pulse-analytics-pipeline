@@ -1,0 +1,148 @@
+version: 2
+
+models:
+
+  # ===========================================================================
+  # STG_NYC_311
+  # ===========================================================================
+  - name: stg_nyc_311
+    description: >
+      Cleaned and typed NYC 311 service requests. One row per service request.
+      Dates cast to timestamps, text standardised to uppercase, coordinates
+      cast to floats. Broken records (no unique_key) filtered out.
+
+    columns:
+      - name: unique_key
+        description: "Unique identifier for each 311 service request"
+        tests:
+          - not_null
+          - unique
+
+      - name: created_at
+        description: "Timestamp when the request was created"
+        tests:
+          - not_null
+
+      - name: complaint_type
+        description: "Uppercase standardised complaint category"
+        tests:
+          - not_null
+
+      - name: borough
+        description: "NYC borough in uppercase"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - 'MANHATTAN'
+                  - 'BROOKLYN'
+                  - 'QUEENS'
+                  - 'BRONX'
+                  - 'STATEN ISLAND'
+                  - 'UNSPECIFIED'
+
+      - name: complaint_status
+        description: "Current status of the request"
+        tests:
+          - not_null
+
+  # ===========================================================================
+  # STG_WEATHER
+  # ===========================================================================
+  - name: stg_weather
+    description: >
+      Cleaned weather observations per NYC borough from OpenWeather API.
+      One row per borough per observation. Boolean flags added for rainy,
+      snowy, cold, and hot conditions.
+
+    columns:
+      - name: borough
+        description: "NYC borough in uppercase"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - 'MANHATTAN'
+                  - 'BROOKLYN'
+                  - 'QUEENS'
+                  - 'BRONX'
+                  - 'STATEN ISLAND'
+
+      - name: observed_at
+        description: "Timestamp of the weather observation"
+        tests:
+          - not_null
+
+      - name: temp_celsius
+        description: "Temperature in Celsius"
+        tests:
+          - not_null
+
+      - name: weather_main
+        description: "Main weather condition e.g. Clear, Rain, Clouds"
+        tests:
+          - not_null
+
+      - name: is_rainy
+        description: "True if rain was recorded in the last hour"
+        tests:
+          - not_null
+
+      - name: is_cold
+        description: "True if temperature is below 10 degrees Celsius"
+        tests:
+          - not_null
+
+  # ===========================================================================
+  # STG_CENSUS
+  # ===========================================================================
+  - name: stg_census
+    description: >
+      Cleaned US Census ACS 5-year estimates for NYC boroughs.
+      One row per borough per survey year. Income bracket and
+      population tier classifications added.
+
+    columns:
+      - name: borough
+        description: "NYC borough in uppercase"
+        tests:
+          - not_null
+          - unique
+
+      - name: survey_year
+        description: "Year of the ACS survey"
+        tests:
+          - not_null
+
+      - name: total_population
+        description: "Total population estimate for the borough"
+        tests:
+          - not_null
+
+      - name: median_household_income
+        description: "Median household income in USD"
+        tests:
+          - not_null
+
+      - name: poverty_rate_pct
+        description: "Percentage of population below poverty line"
+        tests:
+          - not_null
+
+      - name: income_bracket
+        description: "Derived income tier: LOW, MEDIUM, or HIGH"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['LOW', 'MEDIUM', 'HIGH']
+
+      - name: population_tier
+        description: "Derived population tier: LOW, MEDIUM, HIGH, VERY HIGH"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['LOW', 'MEDIUM', 'HIGH', 'VERY HIGH']
