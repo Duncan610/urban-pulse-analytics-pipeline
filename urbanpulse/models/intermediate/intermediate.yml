@@ -1,0 +1,96 @@
+version: 2
+
+models:
+
+  - name: int_311
+    description: >
+      Silver layer model joining 311 complaints with daily weather observations
+      by borough and date. One row per complaint, enriched with weather context.
+
+    columns:
+      - name: unique_key
+        description: "311 complaint unique identifier"
+        tests:
+          - not_null
+          - unique
+      - name: borough
+        description: "NYC borough in uppercase"
+        tests:
+          - not_null
+      - name: created_at
+        description: "Timestamp when the complaint was created"
+        tests:
+          - not_null
+      - name: complaint_type
+        description: "Standardised complaint category"
+        tests:
+          - not_null
+      - name: is_rainy
+        description: "True if it was raining in that borough on that day"
+        tests:
+          - not_null
+      - name: has_weather_data
+        description: "True if weather data was available for this complaint"
+        tests:
+          - not_null
+
+  - name: int_neighborhood
+    description: >
+      Silver layer model joining 311 complaints with Census demographic data
+      by borough. Foundation for equity analysis.
+
+    columns:
+      - name: unique_key
+        description: "311 complaint unique identifier"
+        tests:
+          - not_null
+          - unique
+      - name: borough
+        description: "NYC borough in uppercase"
+        tests:
+          - not_null
+      - name: borough_income_bracket
+        description: "Income classification: LOW, MEDIUM, or HIGH"
+        tests:
+          - not_null
+      - name: has_demographic_data
+        description: "True if Census data was available for this borough"
+        tests:
+          - not_null
+
+  - name: int_complaints
+    description: >
+      Silver layer model calculating response time for each 311 complaint.
+      Foundation for service equity analysis.
+
+    columns:
+      - name: unique_key
+        description: "311 complaint unique identifier"
+        tests:
+          - not_null
+          - unique
+      - name: borough
+        description: "NYC borough in uppercase"
+        tests:
+          - not_null
+      - name: is_closed
+        description: "True if the complaint has been resolved"
+        tests:
+          - not_null
+      - name: response_speed_bucket
+        description: "Categorised response time bucket"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - 'SAME DAY (≤4hrs)'
+                  - 'NEXT DAY (4-24hrs)'
+                  - 'THIS WEEK (1-3 days)'
+                  - 'SLOW (3-7 days)'
+                  - 'VERY SLOW (7+ days)'
+                  - 'OPEN OR UNKNOWN'
+      - name: is_slow_response
+        description: "True if response took longer than 7 days"
+        tests:
+          - not_null
