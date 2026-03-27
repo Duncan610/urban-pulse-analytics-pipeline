@@ -1,0 +1,142 @@
+version: 2
+
+models:
+
+  # DIM_DATE
+  - name: dim_date
+    description: >
+      Calendar dimension table. One row per day from 2020-01-01 to 2026-12-31.
+      Provides date attributes for time-based analysis including day of week,
+      month, quarter, season, weekend flag, and US holiday flag.
+
+    columns:
+      - name: date_day
+        description: "Calendar date — primary key"
+        tests:
+          - not_null
+          - unique
+
+      - name: day_of_week_name
+        description: "Full day name e.g. Monday, Tuesday"
+        tests:
+          - not_null
+
+      - name: season
+        description: "Season: Winter, Spring, Summer, or Fall"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Winter', 'Spring', 'Summer', 'Fall']
+
+      - name: is_weekend
+        description: "True if Saturday or Sunday"
+        tests:
+          - not_null
+
+  # DIM_NEIGHBORHOOD
+  - name: dim_neighborhood
+    description: >
+      Borough dimension table. One row per NYC borough with demographic
+      context from US Census ACS 5-year estimates. Includes income bracket,
+      poverty rate, population tier, and borough rankings.
+
+    columns:
+      - name: neighborhood_key
+        description: "Surrogate key generated from borough name"
+        tests:
+          - not_null
+          - unique
+
+      - name: borough
+        description: "NYC borough name in uppercase"
+        tests:
+          - not_null
+          - unique
+
+      - name: income_bracket
+        description: "Income tier: LOW, MEDIUM, or HIGH"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['LOW', 'MEDIUM', 'HIGH']
+
+      - name: median_household_income
+        description: "Median household income in USD"
+        tests:
+          - not_null
+
+      - name: poverty_rate_pct
+        description: "Percentage of population below poverty line"
+        tests:
+          - not_null
+
+  # FCT_311
+  - name: fct_311
+    description: >
+      Main fact table. One row per 311 complaint, fully enriched with
+      weather context, borough demographics, response time calculations,
+      and date dimension attributes. Primary table for dashboard queries.
+
+    columns:
+      - name: unique_key
+        description: "311 complaint unique identifier — primary key"
+        tests:
+          - not_null
+          - unique
+
+      - name: borough
+        description: "NYC borough in uppercase"
+        tests:
+          - not_null
+
+      - name: created_at
+        description: "Timestamp when the complaint was created"
+        tests:
+          - not_null
+
+      - name: complaint_type
+        description: "Standardised complaint category"
+        tests:
+          - not_null
+
+      - name: is_rainy
+        description: "True if it was raining in that borough on the complaint date"
+        tests:
+          - not_null
+
+      - name: borough_income_bracket
+        description: "Income classification of the borough"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['LOW', 'MEDIUM', 'HIGH']
+  # FCT_COMPLAINTS
+  - name: fct_complaints
+    description: >
+      Daily summary fact table. One row per borough per day aggregating
+      complaint volumes with weather context. Powers time series charts
+      and weather-complaint correlation analysis.
+
+    columns:
+      - name: complaint_date
+        description: "Date of the complaints"
+        tests:
+          - not_null
+
+      - name: borough
+        description: "NYC borough in uppercase"
+        tests:
+          - not_null
+
+      - name: total_complaints
+        description: "Total number of complaints filed that day in that borough"
+        tests:
+          - not_null
+
+      - name: is_rainy
+        description: "True if it rained in that borough that day"
+        tests:
+          - not_null
