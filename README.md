@@ -2,6 +2,8 @@
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://urban-pulse-analytics-pipeline.streamlit.app/)
 
+[![dbt CI](https://github.com/Duncan610/urban-pulse-analytics-pipeline/actions/workflows/dbt_ci.yml/badge.svg)](https://github.com/Duncan610/urban-pulse-analytics-pipeline/actions/workflows/dbt_ci.yml)
+
 > *An end-to-end ELT data engineering project that ingests live NYC public data, transforms it through a production-grade medallion architecture, and surfaces urban insights through an analytics dashboard.*
 
 **Does borough income affect how fast the city responds to complaints? Do rainy days drive more 311 calls? Which neighborhoods are underserved?** UrbanPulse answers these questions with real data.
