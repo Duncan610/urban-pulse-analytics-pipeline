@@ -1,1 +1,343 @@
-## Urban Pulse Analytics Pipeline ##
+# 🏙️ UrbanPulse — NYC City Intelligence Platform
+
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://urban-pulse-analytics-pipeline.streamlit.app/)
+
+> *An end-to-end ELT data engineering project that ingests live NYC public data, transforms it through a production-grade medallion architecture, and surfaces urban insights through an analytics dashboard.*
+
+**Does borough income affect how fast the city responds to complaints? Do rainy days drive more 311 calls? Which neighborhoods are underserved?** UrbanPulse answers these questions with real data.
+
+---
+
+## 📊 Live Dashboard
+
+![Dashboard Metrics and Title](images/streamlitdashmetricsandtitle.png)
+
+![Borough Analysis](images/streamlitdashboardboroughanalysis.png)
+
+![Income vs Response Time](images/streamlitdashincomevsresponsetime.png)
+
+![Top 15 Complaint Types](images/streamlitdashtop15complaints.png)
+
+![Daily Complaint Volume](images/streamlitdashdailycomplaintvolume.png)
+
+---
+
+## 🔍 Key Findings
+
+- **$52,000 income gap** between Manhattan and the Bronx — two boroughs in the same city
+- **The Bronx** (26.3% poverty rate, LOW income bracket) leads all boroughs in complaint volume
+- **Response times vary by borough income** — visualised in the income vs response time scatter plot
+- **135 unique complaint types** processed through the pipeline with response time tracking
+- **54% resolution rate** across all complaints in the dataset
+
+---
+
+## 🏗️ Architecture
+
+```
+OpenWeather API          NYC Open Data (311)       US Census Bureau
+      │                         │                         │
+      ▼                         ▼                         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    Python Ingestion Layer                        │
+│         weather.py    nyc_311.py    census.py                   │
+│    MERGE logic · Retry logic · Idempotent · Paginated           │
+└─────────────────────┬───────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                 Snowflake — URBANPULSE Database                  │
+│                                                                  │
+│  RAW schema          STAGING schema      INTERMEDIATE schema     │
+│  ┌──────────────┐   ┌──────────────┐   ┌──────────────────────┐│
+│  │ nyc_311_raw  │──▶│ stg_nyc_311  │──▶│ int_311              ││
+│  │ weather_raw  │──▶│ stg_weather  │──▶│ int_neighborhood     ││
+│  │ census_raw   │──▶│ stg_census   │──▶│ int_complaints       ││
+│  └──────────────┘   └──────────────┘   └──────────────────────┘│
+│                                                    │             │
+│                           MARTS schema             ▼             │
+│                      ┌─────────────────────────────────────┐    │
+│                      │ dim_date   dim_neighborhood          │    │
+│                      │ fct_311    fct_complaints            │    │
+│                      └─────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              Apache Airflow Orchestration                        │
+│  dag_weather (5AM UTC) → dag_nyc_311 (6AM UTC) → dag_census     │
+└─────────────────────────────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                  Streamlit Dashboard                             │
+│         Borough Analysis · Weather Impact · Equity Insights      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Tool | Why |
+|---|---|---|
+| Ingestion | Python (requests, snowflake-connector) | Full control over API pagination, retry logic, and error handling. NYC 311 and Census have no native Airbyte connectors — Python is the right tool. |
+| Warehouse | Snowflake | Separates compute from storage. Two warehouses (loading + transform) with 60s auto-suspend keep costs near zero. |
+| Transformation | dbt Core | Industry standard for analytics engineering. SQL-first, version-controlled, self-documenting, built-in testing. |
+| Orchestration | Apache Airflow | DAG-based scheduling with retry logic and task dependencies. Weather DAG runs 1 hour before 311 to ensure join data availability. |
+| Dashboard | Streamlit | Python-native. Connects directly to Snowflake. Fast to build and deploy. |
+| CI/CD | GitHub Actions | dbt tests run on every pull request. Bad data never reaches production. |
+
+---
+
+## 📂 Data Sources
+
+| Source | Records | Ingestion Mode |
+|---|---|---|
+| NYC 311 Service Requests | 22,000+ | Daily incremental (3-day lookback) |
+| OpenWeather API | 5 rows/day (one per borough) | Daily full refresh |
+| US Census Bureau ACS5 | 5 rows (one per borough) | Annual |
+
+---
+
+## ❄️ Snowflake Setup
+
+![Creating Role and Warehouse](images/snowflakecreatingroleandwarehouse.png)
+
+![Create Schema and Grant Usage](images/snowflakecreateschemaandgrantusageonschemas.png)
+
+![Snowflake Schemas](images/snowflakeschemas.png)
+
+![Snowflake Warehouses](images/snowflakewarehouses.png)
+
+**Production-grade Snowflake environment:**
+- Dedicated `urbanpulse_role` following least-privilege principles
+- Two separate compute warehouses — `urbanpulse_loading_wh` for ingestion, `urbanpulse_transform_wh` for dbt
+- Both warehouses with 60-second auto-suspend to control costs
+- Four-schema medallion architecture: RAW → STAGING → INTERMEDIATE → MARTS
+- Dedicated service user `urbanpulse_svc` for pipeline connections
+- Pipelines never run as ACCOUNTADMIN
+
+---
+
+## 🐍 Ingestion Layer
+
+![Loading Weather Data via Terminal](images/loadingweatherdataonsnowflakeviaterminal.png)
+
+![Weather Data on Snowflake](images/loadedweatherpyonsnowflake.png)
+
+![Loading Census Data via Terminal](images/loadingcensusdataviaterminalrun.png)
+
+![Census Data on Snowflake](images/loadcensusdataonsnowflake.png)
+
+![Loading NYC 311 Data via Terminal](images/loadednyc311datafromterminaltosnowflake.png)
+
+![NYC 311 Data on Snowflake](images/loadednyc311dataonsnowflake.png)
+
+**Key engineering decisions:**
+
+**MERGE not INSERT** — Pipelines are idempotent. Running twice produces the same result — no duplicates.
+
+**3-day lookback window** — NYC Open Data records sometimes appear 24-48 hours after the service request was created. A 3-day lookback catches late-arriving records on every incremental run.
+
+**Retry logic** — All scripts retry 3 times on transient errors (503s, timeouts) before failing. API outages do not break the pipeline.
+
+**Raw data stored as strings** — Type casting happens in dbt staging, not ingestion. This preserves the original source data and makes debugging easier when something breaks downstream.
+
+---
+
+## 🔄 dbt Transformation Layer
+
+### dbt Debug — All Checks Passed
+
+![dbt Debug All Checks Passed](images/dbtdebugallcheckspassed.png)
+
+### Bronze Layer (Staging)
+
+![dbt Staging Run Passed](images/dbtstagingrunpassed.png)
+
+![dbt Staging Tests Green](images/dbtstagingtestgreen.png)
+
+**Three staging models — one per source:**
+- `stg_nyc_311` — casts dates to timestamps, standardises borough names to uppercase, filters broken records
+- `stg_weather` — coalesces NULL precipitation to 0, adds boolean flags: `is_rainy`, `is_cold`, `is_hot`
+- `stg_census` — adds `income_bracket` (LOW/MEDIUM/HIGH) and `population_tier` classifications
+
+### Silver Layer (Intermediate)
+
+![Intermediate Files](images/intermediatefiles.png)
+
+![dbt Intermediate Tests Run](images/dbtintermediatetestsrun.png)
+
+**Three intermediate models — where the data sources meet:**
+- `int_311` — joins 311 complaints with weather by borough + date
+- `int_neighborhood` — attaches Census demographics to every complaint
+- `int_complaints` — calculates response time in hours, adds speed bucket classification
+
+### Gold Layer (Marts)
+
+![Marts Run Successful](images/greenselectmartssucessful.png)
+
+![Tables in Snowflake](images/tablesinsnowflake.png)
+
+**Four mart models — business-facing final tables:**
+- `dim_date` — calendar dimension 2020-2026 (2,557 rows)
+- `dim_neighborhood` — borough demographics with surrogate keys and income rankings
+- `fct_311` — main fact table, one row per complaint fully enriched (incremental)
+- `fct_complaints` — daily borough summary aggregation powering time series charts
+
+### dbt Lineage Graph
+
+![dbt Lineage Graph](images/dbtlineagegraph.png)
+
+![All Models List](images/dbtlineageallmodellist.png)
+
+![Model Description](images/dbtlineagemodeldescription.png)
+
+![stg_nyc_311 Model Description](images/dbtlineagestgnyc311modeldescription.png)
+
+### Data Quality — 57/57 Tests Passing
+
+```
+Bronze (Staging):      24/24 ✅
+Silver (Intermediate): 19/19 ✅
+Gold (Marts):          14/14 ✅
+─────────────────────────────
+Total:                 57/57 ✅
+```
+
+**Tests implemented:**
+- `unique` + `not_null` on every primary key
+- `not_null` on every column used in downstream joins
+- `accepted_values` on borough — only the 5 valid NYC boroughs pass through
+- `accepted_values` on `income_bracket` — only LOW, MEDIUM, HIGH allowed
+- `accepted_values` on `response_speed_bucket` — validates all response categories
+- `accepted_values` on `season` in dim_date — Winter, Spring, Summer, Fall only
+
+---
+
+## 🔐 GitHub Actions CI/CD
+
+![GitHub Action Secrets](images/githubactionsecrets.png)
+
+Every pull request to `main` automatically:
+1. Installs dbt and dependencies
+2. Writes `profiles.yml` from GitHub Secrets — credentials never in code
+3. Runs `dbt compile` — catches SQL syntax errors
+4. Runs `dbt test` — all 57 tests must pass before merging
+
+---
+
+## 🌊 Airflow Orchestration
+
+Three DAGs orchestrate the full pipeline:
+
+| DAG | Schedule | What it does |
+|---|---|---|
+| `urbanpulse_weather_daily` | Daily 5AM UTC | Ingests weather for all 5 boroughs |
+| `urbanpulse_nyc_311_daily` | Daily 6AM UTC | Ingests 311 + runs full dbt pipeline |
+| `urbanpulse_census_annual` | Jan 1 annually | Updates demographic dimension |
+
+**Why weather runs before 311:** The 311 DAG joins complaints with weather by borough and date. Running weather one hour earlier guarantees today's weather exists when the join runs.
+
+**`catchup=False`:** If Airflow goes offline for 3 days and restarts, it does not replay missed runs. The incremental ingestion lookback handles historical gaps.
+
+---
+
+## 🚀 Running Locally
+
+### Prerequisites
+- Python 3.11+
+- Snowflake account (free trial works)
+- API keys: OpenWeather, NYC Open Data, Census Bureau
+
+### Setup
+
+```bash
+git clone https://github.com/Duncan610/urban-pulse-analytics-pipeline.git
+cd urban-pulse-analytics-pipeline
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+# Edit .env with your credentials
+```
+
+### Run Ingestion
+
+```bash
+python ingestion/weather.py
+python ingestion/census.py
+python ingestion/nyc_311.py --mode historical
+python ingestion/nyc_311.py --mode incremental
+```
+
+### Run dbt
+
+```bash
+cd urbanpulse
+dbt deps
+dbt run
+dbt test
+dbt docs generate && dbt docs serve
+```
+
+### Run Dashboard
+
+```bash
+streamlit run streamlit/app.py
+```
+
+---
+
+## 🗂️ Repository Structure
+
+```
+urban-pulse-analytics-pipeline/
+├── ingestion/
+│   ├── nyc_311.py
+│   ├── weather.py
+│   ├── census.py
+│   └── utils.py
+├── urbanpulse/
+│   ├── models/
+│   │   ├── staging/
+│   │   ├── intermediate/
+│   │   └── marts/
+│   ├── macros/
+│   └── dbt_project.yml
+├── airflow/dags/
+├── streamlit/app.py
+├── .github/workflows/
+├── .env.example
+└── README.md
+```
+
+---
+
+## 💡 Key Engineering Decisions
+
+**Why Python ingestion over Airbyte?**
+NYC Open Data (Socrata) and the US Census Bureau API don't have native Airbyte connectors. Building custom HTTP connectors in Airbyte's UI means writing the same ingestion logic but buried inside a tool that's harder to debug and version control. Python gives full observability, testability, and control.
+
+**Why a custom `generate_schema_name` macro?**
+dbt's default behaviour concatenates the profile's default schema with the custom schema name — producing `STAGING_intermediate` instead of `INTERMEDIATE`. A custom macro overrides this to enforce clean medallion layer separation.
+
+**Why incremental models in the Gold layer?**
+`fct_311` processes only new records on each run using a 3-day lookback window. On a dataset growing by 7,000+ rows daily, this reduces transformation time significantly.
+
+**Why LEFT JOINs in the Silver layer?**
+Complaint records should never be lost because weather data is missing for a specific date. LEFT JOINs keep all 311 records intact — missing weather data produces NULLs, not missing rows.
+
+---
+
+## 👤 Author
+
+**Duncan Otieno**
+[GitHub](https://github.com/Duncan610) · [LinkedIn](https://linkedin.com/in/duncan-otieno)
+
+*Built as a portfolio project demonstrating production-grade analytics engineering.*
+
+---
+
+*Stack: Python · Snowflake · dbt Core · Apache Airflow · Streamlit · GitHub Actions*
