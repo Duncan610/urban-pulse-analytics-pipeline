@@ -1,0 +1,90 @@
+# UrbanPulse — GitHub Actions CI/CD
+# Triggers: every pull request to main + every push to main
+#
+# What it does:
+#   1. Sets up Python and installs dbt
+#   2. Writes profiles.yml from GitHub Secrets (no credentials in code)
+#   3. Installs dbt packages (dbt_utils)
+#   4. Runs dbt compile (catches SQL syntax errors)
+#   5. Runs dbt test (all 57 tests must pass)
+
+name: dbt CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'urbanpulse/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'urbanpulse/**'
+  workflow_dispatch:
+
+jobs:
+  dbt-ci:
+    name: dbt Compile + Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: urbanpulse
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-dbt
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install dbt
+        run: pip install dbt-core==1.11.7 dbt-snowflake
+
+      - name: Write dbt profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml << EOF
+          urbanpulse:
+            target: prod
+            outputs:
+              prod:
+                type: snowflake
+                account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+                user: ${{ secrets.SNOWFLAKE_USER }}
+                password: ${{ secrets.SNOWFLAKE_PASSWORD }}
+                role: ${{ secrets.SNOWFLAKE_ROLE }}
+                warehouse: URBANPULSE_TRANSFORM_WH
+                database: URBANPULSE
+                schema: STAGING
+                threads: 4
+          EOF
+
+      - name: dbt deps
+        run: dbt deps
+
+      - name: dbt compile
+        run: dbt compile
+
+      - name: dbt test
+        run: dbt test
+        env:
+          SNOWFLAKE_ACCOUNT:  ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER:     ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          SNOWFLAKE_ROLE:     ${{ secrets.SNOWFLAKE_ROLE }}
+
+      - name: Upload dbt artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-artifacts
+          path: urbanpulse/target/
