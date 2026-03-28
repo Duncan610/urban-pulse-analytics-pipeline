@@ -64,3 +64,4 @@ airbyte/.secrets/
 *.log
 *.tmp
 *.bak
+airflow-standalone/
