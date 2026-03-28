@@ -79,14 +79,29 @@ st.markdown("""
 
 # =============================================================================
 # SNOWFLAKE CONNECTION
+# Works both locally (via .env) and on Streamlit Cloud (via st.secrets)
 # =============================================================================
+def get_secret(key: str) -> str:
+    """
+    Get a secret value — checks Streamlit secrets first,
+    falls back to environment variables from .env file.
+    This makes the app work both locally and on Streamlit Cloud.
+    """
+    try:
+        if hasattr(st, 'secrets') and key in st.secrets:
+            return st.secrets[key]
+    except Exception:
+        pass
+    return os.getenv(key, "")
+
+
 @st.cache_resource
 def get_snowflake_connection():
     return snowflake.connector.connect(
-        account="ATGFFJL-QEB15691",
-        user="urbanpulse_svc",
-        password="UrbanPulse2026!",
-        role="urbanpulse_role",
+        account=get_secret("SNOWFLAKE_ACCOUNT"),
+        user=get_secret("SNOWFLAKE_USER"),
+        password=get_secret("SNOWFLAKE_PASSWORD"),
+        role=get_secret("SNOWFLAKE_ROLE"),
         warehouse="URBANPULSE_TRANSFORM_WH",
         database="URBANPULSE",
         schema="MARTS",
@@ -498,6 +513,8 @@ st.markdown("""
     Built by Duncan Otieno &nbsp;|&nbsp;
     Stack: Python · Snowflake · dbt Core · Apache Airflow · Streamlit &nbsp;|&nbsp;
     <a href="https://github.com/Duncan610/urban-pulse-analytics-pipeline"
-       style="color: #38bdf8;">GitHub</a>
+       style="color: #38bdf8;">GitHub</a> &nbsp;|&nbsp;
+    <a href="https://www.linkedin.com/in/duncan-otieno"
+       style="color: #38bdf8;">LinkedIn</a>
 </div>
 """, unsafe_allow_html=True)
