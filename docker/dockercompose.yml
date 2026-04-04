@@ -1,0 +1,47 @@
+version: '3.8'
+
+# =============================================================================
+# UrbanPulse — Docker Compose
+# Runs the full ingestion pipeline in isolated containers
+#
+# Usage:
+#   docker compose up weather      → run weather ingestion
+#   docker compose up nyc311       → run 311 ingestion (incremental)
+#   docker compose up census       → run census ingestion
+#   docker compose run nyc311 python /app/ingestion/nyc_311.py --mode historical
+#
+# Prerequisites:
+#   Copy .env.example to .env and fill in your credentials first
+# =============================================================================
+
+services:
+
+  weather:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ingestion
+    container_name: urbanpulse-weather
+    env_file: .env
+    volumes:
+      - ./ingestion:/app/ingestion
+    command: python /app/ingestion/weather.py
+
+  nyc311:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ingestion
+    container_name: urbanpulse-nyc311
+    env_file: .env
+    volumes:
+      - ./ingestion:/app/ingestion
+    command: python /app/ingestion/nyc_311.py --mode incremental
+
+  census:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ingestion
+    container_name: urbanpulse-census
+    env_file: .env
+    volumes:
+      - ./ingestion:/app/ingestion
+    command: python /app/ingestion/census.py

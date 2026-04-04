@@ -1,0 +1,23 @@
+# =============================================================================
+# UrbanPulse — Ingestion Dockerfile
+# Lightweight Python image for running ingestion scripts
+# =============================================================================
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements-ingestion.txt .
+RUN pip install --no-cache-dir -r requirements-ingestion.txt
+
+# Copy ingestion scripts
+COPY ingestion/ ./ingestion/
+
+CMD ["python", "--version"]
