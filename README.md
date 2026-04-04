@@ -177,13 +177,13 @@ flowchart TD
 
 ### dbt Lineage Graph
 
-![dbt Lineage Graph](images/dbtlineagegraph.png)
+![dbt Lineage Graph](images/dbtdocsupdated.png)
 
-![All Models List](images/dbtlineageallmodellist.png)
+![All Models List](images/dbtprojectlist.png)
 
-![Model Description](images/dbtlineagemodeldescription.png)
+![Model Description](images/factservicerequests.png)
 
-![stg_nyc_311 Model Description](images/dbtlineagestgnyc311modeldescription.png)
+![stg_nyc_311 Model Description](images/stgnyc.png)
 
 ### Data Quality — 57/57 Tests Passing
 
