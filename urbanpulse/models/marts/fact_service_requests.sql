@@ -10,7 +10,7 @@
 
 with complaints as (
 
-    select * from {{ ref('int_311') }}
+    select * from {{ ref('int_complaints_weather') }}
 
     {% if is_incremental() %}
         where created_at > (
@@ -35,7 +35,7 @@ response_times as (
         is_closed,
         is_slow_response
 
-    from {{ ref('int_complaints') }}
+    from {{ ref('int_complaints_response_time') }}
 
 ),
 
@@ -52,7 +52,7 @@ neighborhoods as (
         poverty_rank,
         total_population
 
-    from {{ ref('dim_neighborhood') }}
+    from {{ ref('dim_boroughs') }}
 
 ),
 

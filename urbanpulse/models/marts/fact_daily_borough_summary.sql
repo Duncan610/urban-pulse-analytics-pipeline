@@ -32,7 +32,7 @@ with daily_complaints as (
         response_time_hours,
         is_slow_response
 
-    from {{ ref('fact_311') }}
+    from {{ ref('fact_service_requests') }}
 
     where complaint_date is not null
       and borough is not null
