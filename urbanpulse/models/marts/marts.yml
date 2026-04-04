@@ -34,8 +34,8 @@ models:
         tests:
           - not_null
 
-  # DIM_NEIGHBORHOOD
-  - name: dim_neighborhood
+  # DIM_BOROUGHS
+  - name: dim_boroughs
     description: >
       Borough dimension table. One row per NYC borough with demographic
       context from US Census ACS 5-year estimates. Includes income bracket,
@@ -72,8 +72,8 @@ models:
         tests:
           - not_null
 
-  # FCT_311
-  - name: fct_311
+  # FACT_SERVICE_REQUESTS
+  - name: fact_service_requests
     description: >
       Main fact table. One row per 311 complaint, fully enriched with
       weather context, borough demographics, response time calculations,
@@ -113,8 +113,8 @@ models:
           - accepted_values:
               arguments:
                 values: ['LOW', 'MEDIUM', 'HIGH']
-  # FCT_COMPLAINTS
-  - name: fct_complaints
+  # FACT_DAILY_BOROUGH_SUMMARY
+  - name: fact_daily_borough_summary
     description: >
       Daily summary fact table. One row per borough per day aggregating
       complaint volumes with weather context. Powers time series charts
