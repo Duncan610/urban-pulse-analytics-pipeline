@@ -1,12 +1,22 @@
 # 🏙️ UrbanPulse — NYC City Intelligence Platform
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://urban-pulse-analytics-pipeline.streamlit.app/)
+![dbt CI](https://github.com/Duncan610/urban-pulse-analytics-pipeline/actions/workflows/dbt_ci.yml/badge.svg)
 
-[![dbt CI](https://github.com/Duncan610/urban-pulse-analytics-pipeline/actions/workflows/dbt_ci.yml/badge.svg)](https://github.com/Duncan610/urban-pulse-analytics-pipeline/actions/workflows/dbt_ci.yml)
+New York City fields 22,000+ service requests every three days. But not every 
+neighborhood gets the same response.
 
-> *An end-to-end ELT data engineering project that ingests live NYC public data, transforms it through a production-grade medallion architecture, and surfaces urban insights through an analytics dashboard.*
+The Bronx, with a median household income of $47,036 and a 26.3% poverty rate,  
+files more complaints per capita than Manhattan. Yet the data shows measurable 
+differences in how quickly those complaints get resolved.
 
-**Does borough income affect how fast the city responds to complaints? Do rainy days drive more 311 calls? Which neighborhoods are underserved?** UrbanPulse answers these questions with real data.
+UrbanPulse builds the analytics infrastructure to make this visible. It ingests 
+live data from three public APIs, joins them across a medallion architecture in 
+Snowflake surfaces the findings through a live dashboard that anyone can access.
+
+**The central finding:** Borough income correlates with city service response 
+patterns. The $52,000 income gap between Manhattan and the Bronx is not just 
+an economic statistic, it shows up in the data.
 
 ---
 
@@ -35,46 +45,23 @@
 ---
 
 ## 🏗️ Architecture
+```mermaid
+flowchart TD
+    A[NYC 311 API\nSocrata REST] -->|Python ingestion| D
+    B[OpenWeather API\nCurrent weather] -->|Python ingestion| D
+    C[US Census Bureau\nACS5 demographics] -->|Python ingestion| D
 
-```
-OpenWeather API          NYC Open Data (311)       US Census Bureau
-      │                         │                         │
-      ▼                         ▼                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Python Ingestion Layer                        │
-│         weather.py    nyc_311.py    census.py                   │
-│    MERGE logic · Retry logic · Idempotent · Paginated           │
-└─────────────────────┬───────────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                 Snowflake — URBANPULSE Database                  │
-│                                                                  │
-│  RAW schema          STAGING schema      INTERMEDIATE schema     │
-│  ┌──────────────┐   ┌──────────────┐   ┌──────────────────────┐│
-│  │ nyc_311_raw  │──▶│ stg_nyc_311  │──▶│ int_311              ││
-│  │ weather_raw  │──▶│ stg_weather  │──▶│ int_neighborhood     ││
-│  │ census_raw   │──▶│ stg_census   │──▶│ int_complaints       ││
-│  └──────────────┘   └──────────────┘   └──────────────────────┘│
-│                                                    │             │
-│                           MARTS schema             ▼             │
-│                      ┌─────────────────────────────────────┐    │
-│                      │ dim_date   dim_neighborhood          │    │
-│                      │ fct_311    fct_complaints            │    │
-│                      └─────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              Apache Airflow Orchestration                        │
-│  dag_weather (5AM UTC) → dag_nyc_311 (6AM UTC) → dag_census     │
-└─────────────────────────────────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  Streamlit Dashboard                             │
-│         Borough Analysis · Weather Impact · Equity Insights      │
-└─────────────────────────────────────────────────────────────────┘
+    D[(Snowflake\nRAW schema)] -->|dbt Bronze| E
+    
+    E[stg_nyc_311\nstg_weather\nstg_census] -->|dbt Silver| F
+    
+    F[int_complaints_weather\nint_complaints_demographics\nint_complaints_response_time] -->|dbt Gold| G
+    
+    G[fct_service_requests\nfct_daily_borough_summary\ndim_boroughs · dim_date] -->|Streamlit| H
+    
+    H[Live Dashboard\nurban-pulse-analytics-pipeline.streamlit.app]
+    
+    I[GitHub Actions CI/CD\ndbt test on every push] -.->|validates| G
 ```
 
 ---
