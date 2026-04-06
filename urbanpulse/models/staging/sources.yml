@@ -15,7 +15,8 @@ sources:
 
       - name: nyc_311_raw
         description: "Raw NYC 311 service requests from NYC Open Data Socrata API"
-        loaded_at_field: _ingested_at
+        config:
+          loaded_at_field: _ingested_at
         columns:
           - name: unique_key
             description: "Unique identifier for each 311 service request"
@@ -40,7 +41,8 @@ sources:
 
       - name: weather_raw
         description: "Raw weather observations per NYC borough from OpenWeather API"
-        loaded_at_field: _ingested_at
+        config:
+          loaded_at_field: _ingested_at
         columns:
           - name: borough
             description: "NYC borough name"
@@ -59,7 +61,8 @@ sources:
 
       - name: census_raw
         description: "US Census ACS 5-year estimates for NYC boroughs"
-        loaded_at_field: _ingested_at
+        config:
+          loaded_at_field: _ingested_at
         columns:
           - name: borough
             description: "NYC borough name"
