@@ -3,20 +3,20 @@
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://urban-pulse-analytics-pipeline.streamlit.app/)
 ![dbt CI](https://github.com/Duncan610/urban-pulse-analytics-pipeline/actions/workflows/dbt_ci.yml/badge.svg)
 
-New York City fields 22,000+ service requests every three days. But not every 
+New York City fields 22,000+ service requests every three days. But not every
 neighborhood gets the same response.
 
-The Bronx, with a median household income of $47,036 and a 26.3% poverty rate,  
-files more complaints per capita than Manhattan. Yet the data shows measurable 
+The Bronx, with a median household income of $47,036 and a 26.3% poverty rate,
+files more complaints per capita than Manhattan. Yet the data shows measurable
 differences in how quickly those complaints get resolved.
 
-UrbanPulse builds the analytics infrastructure to make this visible. It ingests 
-live data from three public APIs, joins them across a medallion architecture in 
-Snowflake surfaces the findings through a live dashboard that anyone can access.
+UrbanPulse builds the analytics infrastructure to make this visible. It ingests
+live data from three public APIs, joins them across a medallion architecture in
+Snowflake, and surfaces the findings through a live dashboard that anyone can access.
 
-**The central finding:** Borough income correlates with city service response 
-patterns. The $52,000 income gap between Manhattan and the Bronx is not just 
-an economic statistic, it shows up in the data.
+**The central finding:** Borough income correlates with city service response
+patterns. The $52,000 income gap between Manhattan and the Bronx is not just
+an economic statistic — it shows up in the data.
 
 ---
 
@@ -45,6 +45,7 @@ an economic statistic, it shows up in the data.
 ---
 
 ## 🏗️ Architecture
+
 ```mermaid
 flowchart TD
     A[NYC 311 API\nSocrata REST] -->|Python ingestion| D
@@ -52,15 +53,15 @@ flowchart TD
     C[US Census Bureau\nACS5 demographics] -->|Python ingestion| D
 
     D[(Snowflake\nRAW schema)] -->|dbt Bronze| E
-    
+
     E[stg_nyc_311\nstg_weather\nstg_census] -->|dbt Silver| F
-    
+
     F[int_complaints_weather\nint_complaints_demographics\nint_complaints_response_time] -->|dbt Gold| G
-    
+
     G[fct_service_requests\nfct_daily_borough_summary\ndim_boroughs · dim_date] -->|Streamlit| H
-    
+
     H[Live Dashboard\nurban-pulse-analytics-pipeline.streamlit.app]
-    
+
     I[GitHub Actions CI/CD\ndbt test on every push] -.->|validates| G
 ```
 
@@ -159,9 +160,9 @@ flowchart TD
 ![dbt Intermediate Tests Run](images/dbtintermediatetestsrun.png)
 
 **Three intermediate models — where the data sources meet:**
-- `int_311` — joins 311 complaints with weather by borough + date
-- `int_neighborhood` — attaches Census demographics to every complaint
-- `int_complaints` — calculates response time in hours, adds speed bucket classification
+- `int_complaints_weather` — joins 311 complaints with weather by borough and date
+- `int_complaints_demographics` — attaches Census demographics to every complaint
+- `int_complaints_response_time` — calculates response time in hours, adds speed bucket classification
 
 ### Gold Layer (Marts)
 
@@ -171,9 +172,9 @@ flowchart TD
 
 **Four mart models — business-facing final tables:**
 - `dim_date` — calendar dimension 2020-2026 (2,557 rows)
-- `dim_neighborhood` — borough demographics with surrogate keys and income rankings
-- `fct_311` — main fact table, one row per complaint fully enriched (incremental)
-- `fct_complaints` — daily borough summary aggregation powering time series charts
+- `dim_boroughs` — borough demographics with surrogate keys and income rankings
+- `fct_service_requests` — main fact table, one row per complaint fully enriched (incremental)
+- `fct_daily_borough_summary` — daily borough summary aggregation powering time series charts
 
 ### dbt Lineage Graph
 
@@ -181,7 +182,7 @@ flowchart TD
 
 ![All Models List](images/dbtprojectlist.png)
 
-![Model Description](images/factservicerequests.png)
+![fct_service_requests Model Description](images/factservicerequests.png)
 
 ![stg_nyc_311 Model Description](images/stgnyc.png)
 
@@ -252,7 +253,15 @@ cp .env.example .env
 # Edit .env with your credentials
 ```
 
-### Run Ingestion
+### Run with Docker
+
+```bash
+docker compose up weather     # ingest weather data
+docker compose up nyc311      # ingest 311 data (incremental)
+docker compose up census      # ingest census data
+```
+
+### Run Manually
 
 ```bash
 python ingestion/weather.py
@@ -290,13 +299,16 @@ urban-pulse-analytics-pipeline/
 │   └── utils.py
 ├── urbanpulse/
 │   ├── models/
-│   │   ├── staging/
-│   │   ├── intermediate/
-│   │   └── marts/
-│   ├── macros/
+│   │   ├── staging/        ← stg_nyc_311, stg_weather, stg_census
+│   │   ├── intermediate/   ← int_complaints_weather, int_complaints_demographics,
+│   │   │                      int_complaints_response_time
+│   │   └── marts/          ← fct_service_requests, fct_daily_borough_summary,
+│   │                          dim_boroughs, dim_date
+│   ├── macros/             ← generate_schema_name
 │   └── dbt_project.yml
-├── airflow/dags/
+├── airflow/dags/           ← dag_weather, dag_nyc_311, dag_census
 ├── streamlit/app.py
+├── docker-compose.yml
 ├── .github/workflows/
 ├── .env.example
 └── README.md
@@ -313,17 +325,17 @@ NYC Open Data (Socrata) and the US Census Bureau API don't have native Airbyte c
 dbt's default behaviour concatenates the profile's default schema with the custom schema name — producing `STAGING_intermediate` instead of `INTERMEDIATE`. A custom macro overrides this to enforce clean medallion layer separation.
 
 **Why incremental models in the Gold layer?**
-`fct_311` processes only new records on each run using a 3-day lookback window. On a dataset growing by 7,000+ rows daily, this reduces transformation time significantly.
+`fct_service_requests` processes only new records on each run using a 3-day lookback window. On a dataset growing by 7,000+ rows daily, this reduces transformation time significantly.
 
 **Why LEFT JOINs in the Silver layer?**
-Complaint records should never be lost because weather data is missing for a specific date. LEFT JOINs keep all 311 records intact — missing weather data produces NULLs, not missing rows.
+Complaint records should never be lost because weather data is missing for a specific date. LEFT JOINs in `int_complaints_weather` keep all 311 records intact — missing weather data produces NULLs, not missing rows.
 
 ---
 
 ## 👤 Author
 
 **Duncan Otieno**
-[GitHub](https://github.com/Duncan610) · [LinkedIn](https://linkedin.com/in/duncan-otieno)
+[GitHub](https://github.com/Duncan610) · [LinkedIn](https://www.linkedin.com/in/duncan-otieno)
 
 *Built as a portfolio project demonstrating production-grade analytics engineering.*
 
