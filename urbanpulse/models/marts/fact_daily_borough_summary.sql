@@ -1,4 +1,4 @@
--- fact_complaints.sql — Gold Layer (Fact Table)
+-- fact_daily_borough_summary.sql — Gold Layer (Fact Table)
 
 with daily_complaints as (
 

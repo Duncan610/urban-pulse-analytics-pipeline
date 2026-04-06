@@ -1,4 +1,4 @@
--- dim_neighborhood.sql — Gold Layer (Dimension)
+-- dim_boroughs.sql — Gold Layer (Dimension)
 
 
 with census as (
