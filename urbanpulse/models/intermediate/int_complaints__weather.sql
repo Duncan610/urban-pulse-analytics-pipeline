@@ -1,9 +1,5 @@
 
-<<<<<<< HEAD:urbanpulse/models/intermediate/int_complaints_weather.sql
--- int_complaints_weather.sql — Silver Layer
-=======
 -- int_complaints__weather.sql — Silver Layer
->>>>>>> 1f8b8ec (Changed file names):urbanpulse/models/intermediate/int_complaints__weather.sql
 -- What this model does (explained simply):
 --
 -- Imagine you have two lists:

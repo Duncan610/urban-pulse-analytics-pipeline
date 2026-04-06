@@ -1,8 +1,4 @@
-<<<<<<< HEAD:urbanpulse/models/intermediate/int_complaints_demographics.sql
--- int_complaints_demographics.sql — Silver Layer
-=======
 -- int_complaints__demographics.sql — Silver Layer
->>>>>>> 1f8b8ec (Changed file names):urbanpulse/models/intermediate/int_complaints__demographics.sql
 -- What this model does (explained simply):
 --
 -- The Census data tells us about each borough:
