@@ -144,9 +144,9 @@ flowchart TD
 
 ### Bronze Layer (Staging)
 
-![dbt Staging Run Passed](images/dbtstagingrunpassed.png)
+![dbt Staging Run Passed](images/stagingrunupdated.png)
 
-![dbt Staging Tests Green](images/dbtstagingtestgreen.png)
+![dbt Staging Tests Green](images/stagingtestupdated.png)
 
 **Three staging models — one per source:**
 - `stg_nyc_311` — casts dates to timestamps, standardises borough names to uppercase, filters broken records
@@ -157,7 +157,9 @@ flowchart TD
 
 ![Intermediate Files](images/intermediatefiles.png)
 
-![dbt Intermediate Tests Run](images/dbtintermediatetestsrun.png)
+![dbt Intermediate Run](images/intermediaterunupdated.png)
+
+![dbt Intermediate Tests](images/intermediatetestupdate.png)
 
 **Three intermediate models — where the data sources meet:**
 - `int_complaints_weather` — joins 311 complaints with weather by borough and date
@@ -166,7 +168,10 @@ flowchart TD
 
 ### Gold Layer (Marts)
 
-![Marts Run Successful](images/greenselectmartssucessful.png)
+![Marts Run Successful](images/dbtrunmartsupdatedupdate.png)
+
+![Marts Test Successful](images/dbttestmartsupdated.png)
+
 
 ![Tables in Snowflake](images/tablesinsnowflake.png)
 
