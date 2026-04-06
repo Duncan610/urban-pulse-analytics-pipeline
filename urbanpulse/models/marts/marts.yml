@@ -73,7 +73,7 @@ models:
           - not_null
 
   # FACT_SERVICE_REQUESTS
-  - name: fact_service_requests
+  - name: fact_service__requests
     description: >
       Main fact table. One row per 311 complaint, fully enriched with
       weather context, borough demographics, response time calculations,
@@ -114,7 +114,7 @@ models:
               arguments:
                 values: ['LOW', 'MEDIUM', 'HIGH']
   # FACT_DAILY_BOROUGH_SUMMARY
-  - name: fact_daily_borough_summary
+  - name: fact_daily_borough__summary
     description: >
       Daily summary fact table. One row per borough per day aggregating
       complaint volumes with weather context. Powers time series charts

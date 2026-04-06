@@ -1,4 +1,8 @@
+<<<<<<< HEAD:urbanpulse/models/intermediate/int_complaints_response_time.sql
 -- int_complaints_response_time.sql — Silver Layer
+=======
+-- int_complaints__responsetime.sql — Silver Layer
+>>>>>>> 1f8b8ec (Changed file names):urbanpulse/models/intermediate/int_complaints_response__time.sql
 -- What this model does:
 --
 -- Every 311 complaint has a created_at (when someone called)
@@ -39,7 +43,7 @@ with complaints as (
         agency_name,
         _ingested_at
 
-    from {{ ref('stg_nyc_311') }}
+    from {{ ref('stg_nyc__311') }}
 
     -- Only complaints with both timestamps can have response time calculated
     where created_at is not null

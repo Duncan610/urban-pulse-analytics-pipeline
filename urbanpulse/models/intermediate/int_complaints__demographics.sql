@@ -1,4 +1,8 @@
+<<<<<<< HEAD:urbanpulse/models/intermediate/int_complaints_demographics.sql
 -- int_complaints_demographics.sql — Silver Layer
+=======
+-- int_complaints__demographics.sql — Silver Layer
+>>>>>>> 1f8b8ec (Changed file names):urbanpulse/models/intermediate/int_complaints__demographics.sql
 -- What this model does (explained simply):
 --
 -- The Census data tells us about each borough:
@@ -39,7 +43,7 @@ with complaints as (
         _ingested_at,
         date(created_at) as complaint_date
 
-    from {{ ref('stg_nyc_311') }}
+    from {{ ref('stg_nyc__311') }}
 
     where created_at is not null
       and borough not in ('UNSPECIFIED', '')

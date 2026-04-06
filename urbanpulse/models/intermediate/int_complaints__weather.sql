@@ -1,5 +1,9 @@
 
+<<<<<<< HEAD:urbanpulse/models/intermediate/int_complaints_weather.sql
 -- int_complaints_weather.sql — Silver Layer
+=======
+-- int_complaints__weather.sql — Silver Layer
+>>>>>>> 1f8b8ec (Changed file names):urbanpulse/models/intermediate/int_complaints__weather.sql
 -- What this model does (explained simply):
 --
 -- Imagine you have two lists:
@@ -49,7 +53,7 @@ with complaints as (
         -- Extract just the date for joining with weather
         date(created_at) as complaint_date
 
-    from {{ ref('stg_nyc_311') }}
+    from {{ ref('stg_nyc__311') }}
 
     -- Only process records with a valid borough and date
     where created_at is not null

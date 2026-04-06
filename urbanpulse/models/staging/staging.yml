@@ -3,9 +3,9 @@ version: 2
 models:
 
   # ===========================================================================
-  # STG_NYC_311
+  # STG_NYC__311
   # ===========================================================================
-  - name: stg_nyc_311
+  - name: stg_nyc__311
     description: >
       Cleaned and typed NYC 311 service requests. One row per service request.
       Dates cast to timestamps, text standardised to uppercase, coordinates

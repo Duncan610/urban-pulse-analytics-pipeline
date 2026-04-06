@@ -10,7 +10,7 @@
 
 with complaints as (
 
-    select * from {{ ref('int_complaints_weather') }}
+    select * from {{ ref('int_complaints__weather') }}
 
     {% if is_incremental() %}
         where created_at > (
@@ -35,7 +35,7 @@ response_times as (
         is_closed,
         is_slow_response
 
-    from {{ ref('int_complaints_response_time') }}
+    from {{ ref('int_complaints__responsetime') }}
 
 ),
 

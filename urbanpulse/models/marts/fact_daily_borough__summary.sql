@@ -1,4 +1,8 @@
+<<<<<<< HEAD:urbanpulse/models/marts/fact_daily_borough_summary.sql
 -- fact_daily_borough_summary.sql — Gold Layer (Fact Table)
+=======
+-- fact_daily_borough__summary.sql — Gold Layer (Fact Table)
+>>>>>>> 1f8b8ec (Changed file names):urbanpulse/models/marts/fact_daily_borough__summary.sql
 
 with daily_complaints as (
 
@@ -32,7 +36,7 @@ with daily_complaints as (
         response_time_hours,
         is_slow_response
 
-    from {{ ref('fact_service_requests') }}
+    from {{ ref('fact_service__requests') }}
 
     where complaint_date is not null
       and borough is not null
