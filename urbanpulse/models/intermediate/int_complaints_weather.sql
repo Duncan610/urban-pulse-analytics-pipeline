@@ -1,5 +1,5 @@
 
--- int_311.sql — Silver Layer
+-- int_complaints_weather.sql — Silver Layer
 -- What this model does (explained simply):
 --
 -- Imagine you have two lists:

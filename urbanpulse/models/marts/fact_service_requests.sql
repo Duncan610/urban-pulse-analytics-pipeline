@@ -1,4 +1,4 @@
--- fct_311.sql — Gold Layer (Fact Table)
+-- fact_service_requests.sql — Gold Layer (Fact Table)
 
 {{
     config(

@@ -1,4 +1,4 @@
--- int_complaints.sql — Silver Layer
+-- int_complaints_response_time.sql — Silver Layer
 -- What this model does:
 --
 -- Every 311 complaint has a created_at (when someone called)

@@ -1,4 +1,4 @@
--- int_neighborhood.sql — Silver Layer
+-- int_complaints_demographics.sql — Silver Layer
 -- What this model does (explained simply):
 --
 -- The Census data tells us about each borough:
