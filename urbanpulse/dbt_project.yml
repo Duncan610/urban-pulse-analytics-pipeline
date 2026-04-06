@@ -40,3 +40,4 @@ models:
     marts:
       +materialized: table
       +schema: marts
+

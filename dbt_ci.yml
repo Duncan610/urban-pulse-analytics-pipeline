@@ -76,6 +76,9 @@ jobs:
       - name: dbt compile
         run: dbt compile
 
+      - name: dbt run         
+        run: dbt run --fail-fast
+
       - name: dbt test
         run: dbt test
         env:
