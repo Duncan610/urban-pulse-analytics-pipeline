@@ -1,4 +1,8 @@
+<<<<<<< HEAD:urbanpulse/models/marts/fact_service__requests.sql
 -- fact_service_requests.sql — Gold Layer (Fact Table)
+=======
+-- fct_service_requests.sql — Gold Layer (Fact Table)
+>>>>>>> ec75bc1 (Adding some fixed changes):urbanpulse/models/marts/fact_service_requests.sql
 
 {{
     config(
@@ -10,7 +14,11 @@
 
 with complaints as (
 
+<<<<<<< HEAD:urbanpulse/models/marts/fact_service__requests.sql
     select * from {{ ref('int_complaints__weather') }}
+=======
+    select * from {{ ref('int_complaits_weather') }}
+>>>>>>> ec75bc1 (Adding some fixed changes):urbanpulse/models/marts/fact_service_requests.sql
 
     {% if is_incremental() %}
         where created_at > (
@@ -35,7 +43,11 @@ response_times as (
         is_closed,
         is_slow_response
 
+<<<<<<< HEAD:urbanpulse/models/marts/fact_service__requests.sql
     from {{ ref('int_complaints__responsetime') }}
+=======
+    from {{ ref('int_complaints_response_time') }}
+>>>>>>> ec75bc1 (Adding some fixed changes):urbanpulse/models/marts/fact_service_requests.sql
 
 ),
 

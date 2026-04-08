@@ -44,7 +44,12 @@ an economic statistic — it shows up in the data.
 
 ---
 
-## 🏗️ Architecture
+### 🏗️ Architecture
+```mermaid
+flowchart TD
+    A[NYC 311 API\nSocrata REST] -->|Python ingestion| D
+    B[OpenWeather API\nCurrent weather] -->|Python ingestion| D
+    C[US Census Bureau\nACS5 demographics] -->|Python ingestion| D
 
 ```mermaid
 flowchart TD

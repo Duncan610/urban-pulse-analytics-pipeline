@@ -2,7 +2,11 @@ version: 2
 
 models:
 
+<<<<<<< HEAD
   - name: int_complaints__weather
+=======
+  - name: int_complaints_weather
+>>>>>>> ec75bc1 (Adding some fixed changes)
     description: >
       Silver layer model joining 311 complaints with daily weather observations
       by borough and date. One row per complaint, enriched with weather context.
@@ -34,7 +38,11 @@ models:
         tests:
           - not_null
 
+<<<<<<< HEAD
   - name: int_complaints__demographics
+=======
+  - name: int_complaints_demographics
+>>>>>>> ec75bc1 (Adding some fixed changes)
     description: >
       Silver layer model joining 311 complaints with Census demographic data
       by borough. Foundation for equity analysis.
@@ -58,7 +66,11 @@ models:
         tests:
           - not_null
 
+<<<<<<< HEAD
   - name: int_complaints__responsetime
+=======
+  - name: int_complaints_response_time
+>>>>>>> ec75bc1 (Adding some fixed changes)
     description: >
       Silver layer model calculating response time for each 311 complaint.
       Foundation for service equity analysis.
