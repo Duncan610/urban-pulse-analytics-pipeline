@@ -51,12 +51,6 @@ flowchart TD
     B[OpenWeather API\nCurrent weather] -->|Python ingestion| D
     C[US Census Bureau\nACS5 demographics] -->|Python ingestion| D
 
-```mermaid
-flowchart TD
-    A[NYC 311 API\nSocrata REST] -->|Python ingestion| D
-    B[OpenWeather API\nCurrent weather] -->|Python ingestion| D
-    C[US Census Bureau\nACS5 demographics] -->|Python ingestion| D
-
     D[(Snowflake\nRAW schema)] -->|dbt Bronze| E
 
     E[stg_nyc_311\nstg_weather\nstg_census] -->|dbt Silver| F
